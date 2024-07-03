@@ -11,8 +11,8 @@ services:
         volumes:
             - ./server:/usr/src/app
         depends_on:
-            - db
-#            db:
+            - matcha_db
+#            matcha_db:
 #                condition: service_healthy
         ports:
             - "3001:3001"
@@ -33,23 +33,26 @@ services:
         networks:
             - matcha_net
     # DB
-    db:
-        container_name: db
+    matcha_db:
+        container_name: matcha_db
         image: postgres:16.3-alpine3.19
         environment:
+            POSTGRES_DB: matcha_db
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: 1234
             PGUSER: postgres
-            PGDATABASE: postgres
+            PGDATABASE: matcha_db
         volumes:
-            - ./data:/var/lib/postgresql
+            - ./data:/var/lib/postgresql/data
         networks:
             - matcha_net
-#        healthcheck:
-#            test: ["CMD-SHELL", "pg-isready", "-d", "db_prod"]
-#            interval: 10s
-#            timeout: 30s
-#            retries: 5
+        ports:
+            - "5432:5432"
+        healthcheck:
+            test: ["CMD-SHELL", "pg-isready", "-d", "db_prod"]
+            interval: 10s
+            timeout: 30s
+            retries: 5
 
 # network
 networks:
