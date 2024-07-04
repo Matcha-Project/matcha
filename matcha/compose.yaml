@@ -3,13 +3,13 @@ version: "3"
 services:
     # BE
     server:
-        container_name: server
 #        image: node:20-alpine3.19
         build:
             context: ./server
         pull_policy: never
         volumes:
             - ./server:/usr/src/app
+            - /usr/src/app/node_modules
         depends_on:
             - matcha_db
 #            matcha_db:
