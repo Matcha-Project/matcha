@@ -4,6 +4,7 @@ services:
     # BE
     server:
 #        image: node:20-alpine3.19
+        container_name: server
         build:
             context: ./server
         pull_policy: never
@@ -22,14 +23,28 @@ services:
     # FE
     client:
         container_name: client
-#        image: node:20-alpine3.19
+        image: matcha-client:1.0.0
         build:
             context: ./client
         pull_policy: never
         volumes:
             - ./client:/usr/src/app
+            - /usr/src/app/node_modules
         ports:
             - "3000:3000"
+        networks:
+            - matcha_net
+
+    nginx:
+        container_name: nginx
+        image: nginx:latest
+        ports:
+            - "80:80"
+        volumes:
+            - ./nginx:/etc/nginx/conf.d
+        depends_on:
+            - server
+            - client
         networks:
             - matcha_net
     # DB
