@@ -1,0 +1,76 @@
+version: "3"
+
+services:
+    # BE
+    server:
+#        image: node:20-alpine3.19
+        container_name: server
+        build:
+            context: ./server
+        pull_policy: never
+        volumes:
+            - ./server:/usr/src/app
+            - /usr/src/app/node_modules
+        depends_on:
+            - matcha_db
+#            matcha_db:
+#                condition: service_healthy
+        ports:
+            - "3001:3001"
+        networks:
+            - matcha_net
+
+    # FE
+    client:
+        container_name: client
+        image: matcha-client:1.0.0
+        build:
+            context: ./client
+        pull_policy: never
+        volumes:
+            - ./client:/usr/src/app
+            - /usr/src/app/node_modules
+        ports:
+            - "3000:3000"
+        networks:
+            - matcha_net
+
+    nginx:
+        container_name: nginx
+        image: nginx:latest
+        ports:
+            - "80:80"
+        volumes:
+            - ./nginx:/etc/nginx/conf.d
+        depends_on:
+            - server
+            - client
+        networks:
+            - matcha_net
+    # DB
+    matcha_db:
+        container_name: matcha_db
+        image: postgres:16.3-alpine3.19
+        environment:
+            POSTGRES_DB: matcha_db
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: 1234
+            PGUSER: postgres
+            PGDATABASE: matcha_db
+        volumes:
+            - ./data:/var/lib/postgresql/data
+        networks:
+            - matcha_net
+        ports:
+            - "5432:5432"
+        healthcheck:
+            test: ["CMD-SHELL", "pg-isready", "-d", "db_prod"]
+            interval: 10s
+            timeout: 30s
+            retries: 5
+
+# network
+networks:
+    matcha_net:
+        driver: bridge
+# volume
